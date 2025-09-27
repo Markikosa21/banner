@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner Animado Discord - Blanco y Negro</title>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #aaa;
+        }
+        
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+        }
+        
+        #banner {
+            display: block;
+            background: #000;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        #banner:hover {
+            transform: scale(1.01);
+        }
+        
+        .context-info {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .canvas-container:hover .context-info {
+            opacity: 1;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #444, #222);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 200px;
+            justify-content: center;
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #555, #333);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading {
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #fff;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            padding: 20px;
+            border-top: 1px solid #333;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .canvas-container {
+                width: 100%;
+            }
+            
+            #banner {
+                width: 100%;
+                height: auto;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        /* Menú contextual personalizado */
+        .custom-context-menu {
+            position: fixed;
+            background: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            min-width: 180px;
+        }
+        
+        .custom-context-menu ul {
+            list-style: none;
+        }
+        
+        .custom-context-menu li {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #444;
+        }
+        
+        .custom-context-menu li:last-child {
+            border-bottom: none;
+        }
+        
+        .custom-context-menu li:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Banner Animado Discord</h1>
+        <p class="subtitle">Tema Blanco y Negro Elegante</p>
+        
+        <div class="canvas-container">
+            <canvas id="banner" width="800" height="300"></canvas>
+            <div class="context-info">Click derecho para descargar GIF</div>
+        </div>
+        
+        <div class="loading" id="loading">Generando GIF, por favor espere...</div>
+        
+        <div class="controls">
+            <button id="downloadGif">
+                <span>📥</span> Descargar Banner GIF
+            </button>
+            <button id="downloadPageGif">
+                <span>🖼️</span> Descargar Página GIF
+            </button>
+            <button id="downloadBanner">
+                <span>🖼️</span> Descargar Banner PNG
+            </button>
+        </div>
+        
+        <div class="instructions">
+            <h3>Instrucciones de uso:</h3>
+            <ul>
+                <li><strong>Click derecho</strong> sobre el banner para descargarlo como GIF</li>
+                <li>Utiliza los botones para otras opciones de descarga</li>
+                <li>El banner se descargará en blanco y negro con efectos de partículas</li>
+                <li>Puede tomar unos segundos generar el archivo GIF</li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Banner animado para discord.gg/snare | Diseño en blanco y negro</p>
+    </footer>
+
+    <!-- Menú contextual personalizado -->
+    <div class="custom-context-menu" id="contextMenu">
+        <ul>
+            <li id="saveAsGif">💾 Guardar como GIF</li>
+            <li id="saveAsPng">🖼️ Guardar como PNG</li>
+        </ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        const canvas = document.getElementById('banner');
+        const ctx = canvas.getContext('2d');
+        const loading = document.getElementById('loading');
+        const contextMenu = document.getElementById('contextMenu');
+        const saveAsGif = document.getElementById('saveAsGif');
+        const saveAsPng = document.getElementById('saveAsPng');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const text = "discord.gg/snare";
+        const textColor = "#ffffff";
+        const particleColor = "#ffffff";
+
+        let t = 0;
+        const particleCount = 100;
+        const particles = [];
+        let animationId;
+
+        // Precargar la fuente
+        document.fonts.load("80px 'UnifrakturCook'").then(() => {
+            initAnimation();
+        });
+
+        function initAnimation() {
+            ctx.font = "bold 80px 'UnifrakturCook', cursive";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const textWidth = ctx.measureText(text).width;
+            const textHeight = 80;
+
+            // Generar partículas aleatorias
+            for(let i = 0; i < particleCount; i++){
+                const x = Math.random() * W;
+                const y = Math.random() * H;
+                const vx = (Math.random() - 0.5) * 0.5;
+                const vy = (Math.random() - 0.5) * 0.5;
+                const r = Math.random() * 2 + 1;
+                const opacity = Math.random() * 0.8 + 0.2;
+                particles.push({x, y, vx, vy, r, opacity});
+            }
+
+            // Animación en vivo
+            function animate(){
+                t += 0.02;
+
+                // Fondo con efecto de gradiente animado en blanco y negro
+                const gradient = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+                gradient.addColorStop(0, "#0a0a0a");
+                gradient.addColorStop(1, "#1a1a1a");
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, W, H);
+
+                // Partículas
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    // Rebote en los bordes
+                    if(p.x < 0 || p.x > W) p.vx *= -1;
+                    if(p.y < 0 || p.y > H) p.vy *= -1;
+                    
+                    // Efecto de parpadeo en las partículas
+                    p.opacity = 0.3 + Math.sin(t * 2 + p.x * 0.01) * 0.3;
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Texto con efectos mejorados en blanco y negro
+                const wave = Math.sin(t) * 3;
+                const rotate = Math.sin(t/2) * 1.5;
+                
+                ctx.save();
+                ctx.translate(W/2, H/2 + wave);
+                ctx.rotate(rotate * Math.PI/180);
+                
+                // Sombra del texto
+                ctx.shadowColor = "rgba(255, 255, 255, 0.7)";
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                
+                // Texto principal
+                ctx.font = "bold 80px 'UnifrakturCook', cursive";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = textColor;
+                ctx.fillText(text, 0, 0);
+                
+                // Efecto de brillo interno
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+                ctx.lineWidth = 1;
+                ctx.strokeText(text, 0, 0);
+                
+                ctx.restore();
+                
+                // Efecto de partículas que salen del texto
+                if(Math.random() < 0.1) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.5 + Math.random() * 1;
+                    particles.push({
+                        x: W/2 + Math.cos(angle) * 50,
+                        y: H/2 + Math.sin(angle) * 50,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        r: Math.random() * 2 + 1,
+                        opacity: 0.8
+                    });
+                }
+                
+                // Limitar el número de partículas
+                if(particles.length > 120) {
+                    particles.splice(0, particles.length - 120);
+                }
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        // Función para dibujar un frame específico (para GIF)
+        function drawFrame(timeOffset = 0){
+            t += 0.02 + timeOffset;
+
+            // Fondo
+            const gradient = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+            gradient.addColorStop(0, "#0a0a0a");
+            gradient.addColorStop(1, "#1a1a1a");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, W, H);
+
+            // Partículas
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if(p.x < 0 || p.x > W) p.vx *= -1;
+                if(p.y < 0 || p.y > H) p.vy *= -1;
+                
+                p.opacity = 0.3 + Math.sin(t * 2 + p.x * 0.01) * 0.3;
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Texto
+            const wave = Math.sin(t) * 3;
+            const rotate = Math.sin(t/2) * 1.5;
+            ctx.save();
+            ctx.translate(W/2, H/2 + wave);
+            ctx.rotate(rotate * Math.PI/180);
+            ctx.font = "bold 80px 'UnifrakturCook', cursive";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(255, 255, 255, 0.7)";
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
+        }
+
+        // Función para generar y descargar GIF
+        function downloadGif() {
+            loading.style.display = 'block';
+            
+            // Pausar animación para generar GIF
+            cancelAnimationFrame(animationId);
+            
+            const gif = new GIF({
+                workers: 4, 
+                quality: 15, 
+                width: W, 
+                height: H,
+                workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+            });
+            
+            const frames = 15; // Menos frames para un archivo más pequeño
+            const delay = 100; // ms entre frames
+            
+            for(let i = 0; i < frames; i++){
+                drawFrame(0.1);
+                gif.addFrame(ctx, {copy: true, delay: delay});
+            }
+            
+            gif.on('finished', function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'banner-snare-bn.gif';
+                link.click();
+                loading.style.display = 'none';
+                
+                // Reanudar animación
+                initAnimation();
+            });
+            
+            gif.on('progress', function(p) {
+                loading.textContent = `Generando GIF... ${Math.round(p * 100)}%`;
+            });
+            
+            gif.render();
+        }
+
+        // Función para descargar PNG
+        function downloadPng() {
+            // Crear un canvas temporal para capturar el frame actual
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = W;
+            tempCanvas.height = H;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Dibujar el frame actual
+            drawFrame(0);
+            
+            // Copiar el contenido al canvas temporal
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // Crear enlace de descarga
+            const link = document.createElement('a');
+            link.href = tempCanvas.toDataURL('image/png');
+            link.download = 'banner-snare-bn.png';
+            link.click();
+        }
+
+        // Manejar el menú contextual personalizado
+        canvas.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            
+            // Mostrar menú contextual personalizado
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = e.pageX + 'px';
+            contextMenu.style.top = e.pageY + 'px';
+            
+            return false;
+        });
+
+        // Ocultar menú contextual al hacer clic en cualquier lugar
+        document.addEventListener('click', function() {
+            contextMenu.style.display = 'none';
+        });
+
+        // Asignar funciones a los elementos del menú contextual
+        saveAsGif.addEventListener('click', downloadGif);
+        saveAsPng.addEventListener('click', downloadPng);
+
+        // Descargar Banner GIF (botón)
+        document.getElementById('downloadGif').addEventListener('click', downloadGif);
+
+        // Descargar Página GIF (sin botones visibles)
+        document.getElementById('downloadPageGif').addEventListener('click', async function() {
+            loading.style.display = 'block';
+            
+            const buttons = document.querySelectorAll('button');
+            const loadingElement = document.getElementById('loading');
+            buttons.forEach(b => b.style.display = 'none');
+            loadingElement.style.display = 'none';
+
+            const gif = new GIF({
+                workers: 4, 
+                quality: 15, 
+                width: window.innerWidth, 
+                height: window.innerHeight,
+                workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+            });
+            
+            const frames = 10; // Menos frames para un archivo más manejable
+            const delay = 150;
+            
+            for(let i = 0; i < frames; i++){
+                drawFrame(0.1);
+                
+                // Capturar página con html2canvas
+                const canvasPage = await html2canvas(document.body, {
+                    backgroundColor: null,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    scale: 0.5 // Reducir escala para archivo más pequeño
+                });
+                
+                gif.addFrame(canvasPage, {copy: true, delay: delay});
+            }
+            
+            gif.on('finished', function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'pagina-snare-bn.gif';
+                link.click();
+                
+                buttons.forEach(b => b.style.display = 'inline-block');
+                loading.style.display = 'none';
+            });
+            
+            gif.render();
+        });
+
+        // Descargar Banner PNG (estático)
+        document.getElementById('downloadBanner').addEventListener('click', downloadPng);
+
+        // Manejar el redimensionamiento de la ventana
+        window.addEventListener('resize', function() {
+            // Ajustar el tamaño del canvas para dispositivos móviles
+            if (window.innerWidth < 768) {
+                const scale = Math.min(window.innerWidth / W, 0.9);
+                canvas.style.width = (W * scale) + 'px';
+                canvas.style.height = (H * scale) + 'px';
+            } else {
+                canvas.style.width = W + 'px';
+                canvas.style.height = H + 'px';
+            }
+        });
+
+        // Inicializar el tamaño del canvas
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html>
